@@ -1,5 +1,14 @@
 const rulesBtn = document.querySelector("#rules-btn");
 const closeBtn = document.querySelector("#close-btn");
+
+rulesBtn.addEventListener("click", () => {
+  rules.classList.add("show");
+});
+
+closeBtn.addEventListener("click", () => {
+  rules.classList.remove("show");
+});
+
 const rules = document.querySelector("#rules");
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
@@ -27,14 +36,6 @@ const ball = {
   dirY: -4,
 };
 
-const drawBall = () => {
-  ctx.beginPath();
-  ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2);
-  ctx.fillStyle = "#0095dd";
-  ctx.fill();
-  ctx.closePath();
-};
-
 const paddle = {
   x: canvas.width / 2 - 40,
   y: canvas.height - 20,
@@ -42,6 +43,14 @@ const paddle = {
   h: 10,
   speed: 8,
   dirX: 0,
+};
+
+const drawBall = () => {
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2);
+  ctx.fillStyle = "#0095dd";
+  ctx.fill();
+  ctx.closePath();
 };
 
 const drawPaddle = () => {
@@ -57,13 +66,63 @@ const drawScore = () => {
   ctx.fillText(`Score: ${score}`, canvas.width - 100, 30);
 };
 
-const drawBallPaddleScore = () => {
-  drawBall();
-  drawPaddle();
-  drawScore();
+const moveBall = () => {
+  ball.x += ball.dirX;
+  ball.y += ball.dirY;
+
+  if (ball.x + ball.size > canvas.width || ball.x - ball.size < 0) {
+    ball.dirX *= -1;
+  }
+
+  if (ball.y + ball.size > canvas.height || ball.y - ball.size < 0) {
+    ball.dirY *= -1;
+  }
+
+  if (
+    ball.x - ball.size > paddle.x &&
+    ball.x + ball.size < paddle.x + paddle.w &&
+    ball.y + ball.size > paddle.y
+  ) {
+    ball.dirY = -ball.speed;
+  }
+
+  bricks.forEach((column) => {
+    column.forEach((brick) => {
+      if (brick.visible) {
+        if (
+          ball.x - ball.size > brick.x &&
+          ball.x + ball.size < brick.x + brick.w &&
+          ball.y + ball.size > brick.y &&
+          ball.y - ball.size < brick.y + brick.h
+        ) {
+          ball.dirY *= -1;
+          brick.visible = false;
+          increaseScore();
+        }
+      }
+    });
+  });
+  if (ball.y + ball.size > canvas.height) {
+    showAllBricks();
+    score = 0;
+  }
 };
 
-drawBallPaddleScore();
+const showAllBricks = () => {
+  bricks.forEach((column) => {
+    column.forEach((brick) => {
+      brick.visible = true;
+    });
+  });
+};
+
+const increaseScore = () => {
+  score++;
+
+  if (score % (brickRowCount * brickColCount) === 0) {
+    showAllBricks();
+  }
+};
 
 const createBricks = () => {
   for (let i = 0; i < brickRowCount; i++) {
@@ -75,6 +134,8 @@ const createBricks = () => {
     }
   }
 };
+
+createBricks();
 
 const drawBricks = () => {
   bricks.forEach((col) => {
@@ -88,13 +149,53 @@ const drawBricks = () => {
   });
 };
 
-createBricks();
-drawBricks();
+const movePaddle = () => {
+  paddle.x += paddle.dirX;
 
-rulesBtn.addEventListener("click", () => {
-  rules.classList.add("show");
-});
+  if (paddle.x + paddle.w > canvas.width) {
+    paddle.x = canvas.width - paddle.w;
+  }
 
-closeBtn.addEventListener("click", () => {
-  rules.classList.remove("show");
-});
+  if (paddle.x < 0) {
+    paddle.x = 0;
+  }
+};
+
+const draw = () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBall();
+  drawPaddle();
+  drawScore();
+  drawBricks();
+};
+
+const update = () => {
+  movePaddle();
+  moveBall();
+  draw();
+  requestAnimationFrame(update);
+};
+
+update();
+
+const keyDown = (e) => {
+  if (e.key === "Right" || e.key === "ArrowRight") {
+    paddle.dirX = paddle.speed;
+  } else if (e.key === "Left" || e.key === "ArrowLeft") {
+    paddle.dirX = -paddle.speed;
+  }
+};
+
+const keyUp = (e) => {
+  if (
+    e.key === "Right" ||
+    e.key === "ArrowRight" ||
+    e.key === "Left" ||
+    e.key === "ArrowLeft"
+  ) {
+    paddle.dirX = 0;
+  }
+};
+
+document.addEventListener("keydown", keyDown);
+document.addEventListener("keyup", keyUp);
