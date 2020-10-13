@@ -51,6 +51,35 @@ canvas {
   left: 30px;
 }
 
+#level-btn {
+  position: absolute;
+  top: 80px;
+  left: 30px;
+}
+
+.level:hover {
+  cursor: pointer;
+  background-color: rgb(92, 91, 91);
+}
+
+.level {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+#levels {
+  position: absolute;
+  top: 110px;
+  left: 32px;
+  background: #333;
+  color: #fff;
+  padding: 20px;
+  display: none;
+  margin-top: 7px;
+  border-radius: 5px;
+  font-size: 20px;
+}
+
 .rules {
   position: absolute;
   top: 0;
@@ -67,4 +96,8 @@ canvas {
 
 .rules.show {
   transform: translateX(0);
+}
+
+.visible {
+  display: block;
 }
